@@ -1,6 +1,12 @@
 package com.sainsburys.test.scraper;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.hamcrest.CoreMatchers;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -23,8 +29,122 @@ public class WebScraperTest {
     private WebScraper scraper;
 
     @Before
-    public void before() {
-        scraper = new WebScraper("url");
+    public void before() throws MalformedURLException {
+        scraper = new WebScraper("http://www.google.com");
+    }
+
+    /**
+     * Tests an {@link IOException} is caught and thrown when {@link Jsoup} is unable to get the web page DOM for the
+     * {@link URL} given.
+     */
+    @Test(expected = IOException.class)
+    public void testScrapeWebPage(@Mocked Connection connection) throws IOException {
+
+        new Expectations(Jsoup.class) {
+            {
+                Jsoup.connect(Deencapsulation.getField(scraper, "webPageUrl").toString());
+                result = connection;
+
+                connection.get();
+                result = new IOException("Error getting web page DOM");
+            }
+        };
+
+        scraper.scrapeWebPage();
+    }
+
+    /**
+     * Tests that when no errors are thrown, the attributes required are scraped from the web page url, and the products
+     * further information page and stored on the scraper instance.
+     */
+    @Test
+    public void testScrapeProductElement_allAttributesScrapedAndStored(@Mocked Connection connection)
+            throws IOException {
+
+        new Expectations(scraper, Jsoup.class) {
+            {
+                scraper.setNameAndGetForwardLink(productElement);
+                result = "/images";
+
+                scraper.getPrice(productElement);
+                result = "10.00";
+
+                Jsoup.connect("http://www.google.com/images");
+                result = connection;
+
+                connection.get();
+                result = document;
+
+                scraper.getDescription(document);
+                result = "description";
+
+                scraper.getCalories(document);
+                result = "45";
+
+            }
+        };
+
+        scraper.scrapeProductElement(productElement);
+
+        Assert.assertThat("The price of the Product is incorrect", Deencapsulation.getField(scraper, "price"),
+                CoreMatchers.is("10.00"));
+        Assert.assertThat("The description of the Product is incorrect",
+                Deencapsulation.getField(scraper, "description"), CoreMatchers.is("description"));
+        Assert.assertThat("The number of calories of the Product is incorrect",
+                Deencapsulation.getField(scraper, "calories"), CoreMatchers.is("45"));
+    }
+
+    /**
+     * Tests that an {@link IOException} is caught and thrown if the link found for the products further information
+     * page creates a malformed URL when put relatively against the starting URL.
+     */
+    @Test(expected = IOException.class)
+    public void testScrapeProductElement_malformedExceptionCreatingNewUrl_ioExceptionThrown(
+            @Mocked Connection connection) throws IOException {
+
+        new Expectations(scraper, URL.class) {
+            {
+                scraper.setNameAndGetForwardLink(productElement);
+                result = "/images";
+
+                scraper.getPrice(productElement);
+                result = "10.00";
+
+                new URL(Deencapsulation.getField(scraper, "webPageUrl"), "/images");
+                result = new MalformedURLException("Malformed URL");
+
+            }
+        };
+
+        scraper.scrapeProductElement(productElement);
+    }
+
+    /**
+     * Tests an {@link IOException} is caught and thrown when {@link Jsoup} is unable to get the web page DOM for the
+     * {@link URL} given.
+     */
+    @Test(expected = IOException.class)
+    public void testScrapeProductElement_ioExceptionGettingConnection_ioExceptionThrown(@Mocked Connection connection)
+            throws IOException {
+
+        new Expectations(scraper, Jsoup.class) {
+            {
+                scraper.setNameAndGetForwardLink(productElement);
+                result = "/images";
+
+                scraper.getPrice(productElement);
+                result = "10.00";
+
+                Jsoup.connect("http://www.google.com/images");
+                result = connection;
+
+                connection.get();
+                result = new IOException("Exception getting web page");
+
+            }
+        };
+
+        scraper.scrapeProductElement(productElement);
     }
 
     /**

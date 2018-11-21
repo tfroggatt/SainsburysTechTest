@@ -1,6 +1,7 @@
 package com.sainsburys.test.scraper;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import com.sainsburys.test.products.Product;
  */
 public class WebScraper {
 
-    private String webPageUrl;
+    private URL webPageUrl;
 
     private String name;
 
@@ -30,8 +31,12 @@ public class WebScraper {
 
     private String calories;
 
-    public WebScraper(String url) {
-        this.webPageUrl = url;
+    public WebScraper(String url) throws MalformedURLException {
+        try {
+            this.webPageUrl = new URL(url);
+        } catch (MalformedURLException e) {
+            throw new MalformedURLException("The URL provided is malformed, Exitting program");
+        }
     }
 
     /**
@@ -40,26 +45,24 @@ public class WebScraper {
      * 
      * @param webPageUrl
      *            The URL of the page to be scrapped.
+     * @throws IOException
      */
-    public void scrapeWebPage() {
+    public void scrapeWebPage() throws IOException {
 
         List<Product> productsFound = new ArrayList<>();
 
         try {
-
-            URL url = new URL(webPageUrl);
-
             Document page;
 
             // Creates a DOM object of the webpage for the given URL
-            page = Jsoup.connect(url.toString()).get();
+            page = Jsoup.connect(webPageUrl.toString()).get();
 
             // Finds all elements in the DOM that have the 'product' class associated to them
             Elements products = page.getElementsByClass("product");
 
             for (Element product : products) {
 
-                scrapeProductElement(product, url);
+                scrapeProductElement(product);
 
                 // Creates a product instance for the values that have just been scrapped
                 if (StringUtils.isEmpty(calories)) {
@@ -76,7 +79,7 @@ public class WebScraper {
 
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IOException(e.getLocalizedMessage());
         }
 
         System.out.println(productsFound.size());
@@ -93,15 +96,18 @@ public class WebScraper {
      *            The url of the page it was retrieved from
      * @throws IOException
      */
-    protected void scrapeProductElement(Element productElement, URL url) throws IOException {
+    protected void scrapeProductElement(Element productElement) throws IOException {
         String link = setNameAndGetForwardLink(productElement);
         price = getPrice(productElement);
 
         Document itemPage;
         try {
+            // Creates a new url using the relative link retrieved from the name link
+            URL itemPageUrl = new URL(webPageUrl, link);
+
             // Creates a new DOM Document of the products further information page in order to get the
             // additional information that wasn't present on the main page
-            itemPage = Jsoup.connect(new URL(url, link).toString()).get();
+            itemPage = Jsoup.connect(itemPageUrl.toString()).get();
             description = getDescription(itemPage);
             calories = getCalories(itemPage);
         } catch (IOException e) {
