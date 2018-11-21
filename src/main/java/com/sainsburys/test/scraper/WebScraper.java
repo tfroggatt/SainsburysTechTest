@@ -65,10 +65,12 @@ public class WebScraper {
                 scrapeProductElement(product);
 
                 // Creates a product instance for the values that have just been scrapped
-                if (StringUtils.isEmpty(calories)) {
-                    productsFound.add(new Product(name, description, price));
-                } else {
-                    productsFound.add(new FoodProduct(name, description, price, calories));
+                if (StringUtils.isNotBlank(name)) {
+                    if (StringUtils.isEmpty(calories)) {
+                        productsFound.add(new Product(name, description, price));
+                    } else {
+                        productsFound.add(new FoodProduct(name, description, price, calories));
+                    }
                 }
 
                 // Sets the fields back to null for the next product found
