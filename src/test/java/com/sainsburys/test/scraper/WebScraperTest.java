@@ -24,7 +24,7 @@ import mockit.Mocked;
 import mockit.Verifications;
 
 /**
- * Unit test class for the {@link WebScraper} test.
+ * Unit test class for the {@link Scraper} test.
  *
  */
 public class WebScraperTest {
@@ -35,11 +35,11 @@ public class WebScraperTest {
     @Mocked
     Element productElement;
 
-    private WebScraper scraper;
+    private Scraper scraper;
 
     @Before
     public void before() throws MalformedURLException {
-        scraper = new WebScraper("http://www.google.com");
+        scraper = new Scraper("http://www.google.com");
     }
 
     /**

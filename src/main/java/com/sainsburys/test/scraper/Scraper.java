@@ -19,7 +19,7 @@ import com.sainsburys.test.products.Product;
  * This class will perform the main scraping of a given web page to gather the necessary information.
  *
  */
-public class WebScraper {
+public class Scraper {
 
     private URL webPageUrl;
 
@@ -31,7 +31,7 @@ public class WebScraper {
 
     private String calories;
 
-    public WebScraper(String url) throws MalformedURLException {
+    public Scraper(String url) throws MalformedURLException {
         try {
             this.webPageUrl = new URL(url);
         } catch (MalformedURLException e) {
