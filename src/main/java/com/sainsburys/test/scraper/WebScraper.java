@@ -47,7 +47,7 @@ public class WebScraper {
      *            The URL of the page to be scrapped.
      * @throws IOException
      */
-    public void scrapeWebPage() throws IOException {
+    public List<Product> scrapeWebPage() throws IOException {
 
         List<Product> productsFound = new ArrayList<>();
 
@@ -84,7 +84,7 @@ public class WebScraper {
             throw new IOException(e.getLocalizedMessage());
         }
 
-        System.out.println(productsFound.size());
+        return productsFound;
 
     }
 
