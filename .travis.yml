@@ -9,3 +9,8 @@ deploy:
   keep-history: true
   on:
     branch: master
+	
+script: "mvn cobertura:cobertua"
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
