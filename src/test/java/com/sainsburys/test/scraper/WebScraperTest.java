@@ -14,9 +14,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.sainsburys.test.products.FoodProduct;
+import com.sainsburys.test.products.Product;
+
 import mockit.Deencapsulation;
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 
 public class WebScraperTest {
 
@@ -38,7 +42,8 @@ public class WebScraperTest {
      * {@link URL} given.
      */
     @Test(expected = IOException.class)
-    public void testScrapeWebPage(@Mocked Connection connection) throws IOException {
+    public void testScrapeWebPage_ioExceptionGettingPage_ioExceptionCaughtAndThrown(@Mocked Connection connection)
+            throws IOException {
 
         new Expectations(Jsoup.class) {
             {
@@ -51,6 +56,159 @@ public class WebScraperTest {
         };
 
         scraper.scrapeWebPage();
+    }
+
+    /**
+     * Tests that when there are no elements with the class 'product', then no java product instances are created.
+     */
+    @Test
+    public void testScrapeWebPage_noProductElements_zeroProductObjects(@Mocked Connection connection,
+            @Mocked Product product, @Mocked FoodProduct foodProduct) throws IOException {
+
+        new Expectations(Jsoup.class) {
+            {
+                Jsoup.connect(Deencapsulation.getField(scraper, "webPageUrl").toString());
+                result = connection;
+
+                connection.get();
+                result = document;
+
+                document.getElementsByClass("product");
+                result = new Elements();
+            }
+        };
+
+        scraper.scrapeWebPage();
+
+        new Verifications() {
+            {
+                new Product(anyString, anyString, anyString);
+                times = 0;
+
+                new FoodProduct(anyString, anyString, anyString, anyString);
+                times = 0;
+            }
+        };
+
+    }
+
+    /**
+     * Tests that no product objects are created if when trying to scrape the product elements found, no name is found
+     * and therefore we don't know what to call the product.
+     */
+    @Test
+    public void testScrapeWebPage_productElementsFoundNoName_zeroProductObjects(@Mocked Connection connection,
+            @Mocked Element productElement, @Mocked Product product, @Mocked FoodProduct foodProduct)
+            throws IOException {
+
+        new Expectations(scraper, Jsoup.class) {
+            {
+                Jsoup.connect(Deencapsulation.getField(scraper, "webPageUrl").toString());
+                result = connection;
+
+                connection.get();
+                result = document;
+
+                document.getElementsByClass("product");
+                result = new Elements(productElement);
+
+                // Acts as a verification
+                scraper.scrapeProductElement(productElement);
+            }
+        };
+
+        scraper.scrapeWebPage();
+
+        new Verifications() {
+            {
+                new Product(anyString, anyString, anyString);
+                times = 0;
+
+                new FoodProduct(anyString, anyString, anyString, anyString);
+                times = 0;
+            }
+        };
+    }
+
+    /**
+     * Tests that if a name and a price are the only things found from the product element, a standard product is
+     * created to hold the information.
+     */
+    @Test
+    public void testScrapeWebPage_productElementsFoundNamePriceFound_productObjectCreated(@Mocked Connection connection,
+            @Mocked Element productElement, @Mocked Product product, @Mocked FoodProduct foodProduct)
+            throws IOException {
+
+        Deencapsulation.setField(scraper, "name", "productName");
+        Deencapsulation.setField(scraper, "price", "10.00");
+
+        new Expectations(scraper, Jsoup.class) {
+            {
+                Jsoup.connect(Deencapsulation.getField(scraper, "webPageUrl").toString());
+                result = connection;
+
+                connection.get();
+                result = document;
+
+                document.getElementsByClass("product");
+                result = new Elements(productElement);
+
+                // Acts as a verification
+                scraper.scrapeProductElement(productElement);
+            }
+        };
+
+        scraper.scrapeWebPage();
+
+        new Verifications() {
+            {
+                new Product("productName", null, "10.00");
+
+                new FoodProduct(anyString, anyString, anyString, anyString);
+                times = 0;
+            }
+        };
+    }
+
+    /**
+     * Tests that if a name and a price are the only things found from the product element, a standard product is
+     * created to hold the information.
+     */
+    @Test
+    public void testScrapeWebPage_productElementsFoundNamePriceCaloriesFound_productObjectCreated(
+            @Mocked Connection connection, @Mocked Element productElement, @Mocked Product product,
+            @Mocked FoodProduct foodProduct) throws IOException {
+
+        Deencapsulation.setField(scraper, "name", "productName");
+        Deencapsulation.setField(scraper, "price", "10.00");
+        Deencapsulation.setField(scraper, "calories", "23");
+
+        new Expectations(scraper, Jsoup.class) {
+            {
+                Jsoup.connect(Deencapsulation.getField(scraper, "webPageUrl").toString());
+                result = connection;
+
+                connection.get();
+                result = document;
+
+                document.getElementsByClass("product");
+                result = new Elements(productElement);
+
+                // Acts as a verification
+                scraper.scrapeProductElement(productElement);
+            }
+        };
+
+        scraper.scrapeWebPage();
+
+        new Verifications() {
+            {
+                new Product("productName", null, "10.00");
+                times = 0;
+
+                new FoodProduct("productName", null, "10.00", "23");
+            }
+        };
     }
 
     /**

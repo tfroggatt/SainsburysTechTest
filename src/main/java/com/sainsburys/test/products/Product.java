@@ -3,28 +3,29 @@ package com.sainsburys.test.products;
 import java.text.DecimalFormat;
 
 /**
- * This class will create an object to hold Product information that has been scrapped from the
- * web page.
+ * This class will create an object to hold Product information that has been scrapped from the web page.
  */
 public class Product {
 
-	//Name of the product
+    // Name of the product
     private String name;
 
-    //Description of the product (first line if multiple)
+    // Description of the product (first line if multiple)
     private String description;
 
-    //The price per unit of the product
+    // The price per unit of the product
     private double price;
 
-    //The VAT based off of the unit price
+    // The VAT based off of the unit price
     private double vat;
 
     public Product(String name, String description, String price) {
         this.name = name;
         this.description = description;
-        this.price = Double.parseDouble(price);
-        calculateVat();
+        if (null != price) {
+            this.price = Double.parseDouble(price);
+            calculateVat();
+        }
     }
 
     /**
