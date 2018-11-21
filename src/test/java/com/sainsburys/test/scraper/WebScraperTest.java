@@ -3,6 +3,7 @@ package com.sainsburys.test.scraper;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import org.hamcrest.CoreMatchers;
 import org.jsoup.Connection;
@@ -22,6 +23,10 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 
+/**
+ * Unit test class for the {@link WebScraper} test.
+ *
+ */
 public class WebScraperTest {
 
     @Mocked
@@ -78,7 +83,9 @@ public class WebScraperTest {
             }
         };
 
-        scraper.scrapeWebPage();
+        List<Product> result = scraper.scrapeWebPage();
+        Assert.assertThat("There should have been no products found via scraping", result.isEmpty(),
+                CoreMatchers.is(true));
 
         new Verifications() {
             {
@@ -117,7 +124,9 @@ public class WebScraperTest {
             }
         };
 
-        scraper.scrapeWebPage();
+        List<Product> result = scraper.scrapeWebPage();
+        Assert.assertThat("There should have been no products found via scraping", result.isEmpty(),
+                CoreMatchers.is(true));
 
         new Verifications() {
             {
@@ -158,7 +167,10 @@ public class WebScraperTest {
             }
         };
 
-        scraper.scrapeWebPage();
+        List<Product> result = scraper.scrapeWebPage();
+        Assert.assertThat("There should have been 1 product found via scraping", result.size(), CoreMatchers.is(1));
+        Assert.assertThat("The instance of the product found should be Product", result.get(0),
+                CoreMatchers.instanceOf(Product.class));
 
         new Verifications() {
             {
@@ -199,7 +211,10 @@ public class WebScraperTest {
             }
         };
 
-        scraper.scrapeWebPage();
+        List<Product> result = scraper.scrapeWebPage();
+        Assert.assertThat("There should have been 1 product found via scraping", result.size(), CoreMatchers.is(1));
+        Assert.assertThat("The instance of the product found should be FoodProduct", result.get(0),
+                CoreMatchers.instanceOf(FoodProduct.class));
 
         new Verifications() {
             {
